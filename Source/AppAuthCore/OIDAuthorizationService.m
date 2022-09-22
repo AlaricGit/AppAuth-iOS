@@ -117,6 +117,23 @@ NS_ASSUME_NONNULL_BEGIN
 }
 
 - (BOOL)shouldHandleURL:(NSURL *)URL {
+  NSURL *standardizedURL = [URL standardizedURL];
+  
+  // Check if CFBundleURLSchemes contains the custom scheme first
+  NSArray *URLTypes = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleURLTypes"];
+  if (URLTypes != nil) {
+    for (int i = 0; i < [URLTypes count]; ++i) {
+      NSDictionary *schemesDict = [URLTypes objectAtIndex:i];
+      NSArray *schemes = [schemesDict objectForKey:@"CFBundleURLSchemes"];
+      for (int j = 0; j < [schemes count]; ++j) {
+        NSString *scheme = [schemes objectAtIndex:j];
+        if (OIDIsEqualIncludingNil(scheme, standardizedURL.scheme)) {
+          return YES;
+        }
+      }
+    }
+  }
+
   return [[self class] URL:URL matchesRedirectionURL:_request.redirectURL];
 }
 
